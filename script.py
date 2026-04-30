@@ -10,7 +10,7 @@ KEY = bytes.fromhex("fd9840a6e1f3c2a1ca6e55112679232add28c725dcfae34972db0c6a0e1
 INTERVAL = 43200  # каждые 12 часов
 
 GIST_ID = "b4674e2547e2720e4c7d27fdeebc0591"
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
 GIST_FILENAME = "tumanchik"
 
 SERVER_IPS = {
