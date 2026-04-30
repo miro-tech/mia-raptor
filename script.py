@@ -1,6 +1,5 @@
-import requests, uuid, base64, json, time
+import requests, uuid, base64, json, time, os
 from Crypto.Cipher import AES
-import os
 
 # =========================
 # НАСТРОЙКИ
@@ -8,11 +7,11 @@ import os
 API = "https://api.xbs54as9c6.ru"
 KEY = bytes.fromhex("fd9840a6e1f3c2a1ca6e55112679232add28c725dcfae34972db0c6a0e13cfaf")
 
-INTERVAL = 43200  # каждые 12 часов
-
 GIST_ID = "b4674e2547e2720e4c7d27fdeebc0591"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GIST_FILENAME = "tumanchik"
+GIST_FILENAME = "gistfile1.txt"
+
+# 👉 если запускаешь в Termux — вставь токен сюда
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or "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"
 
 SERVER_IPS = {
     "yy.xbs54as9c6.ru": "46.243.211.17",
@@ -31,25 +30,47 @@ headers = {
 # ПОЛУЧЕНИЕ ССЫЛОК
 # =========================
 def get_links():
+    print("🚀 START REQUEST")
+
     device_id = str(uuid.uuid4())
 
-    requests.post(API + "/api/v2/devices/access", json={
-        "device_id": device_id,
-        "device_token": ""
-    }, headers=headers, timeout=10)
+    # регистрация
+    r1 = requests.post(
+        API + "/api/v2/devices/access",
+        json={"device_id": device_id, "device_token": ""},
+        headers=headers,
+        timeout=10
+    )
 
-    r = requests.get(API + "/api/config", params={"device_id": device_id}, headers=headers, timeout=10)
-    data = base64.b64decode(r.json()["data"])
+    print("REGISTER STATUS:", r1.status_code)
 
+    # получение конфига
+    r2 = requests.get(
+        API + "/api/config",
+        params={"device_id": device_id},
+        headers=headers,
+        timeout=10
+    )
+
+    print("CONFIG STATUS:", r2.status_code)
+
+    if r2.status_code != 200:
+        print("❌ API ERROR:", r2.text)
+        return []
+
+    data = base64.b64decode(r2.json()["data"])
+
+    # decrypt
     nonce = data[:12]
     tag = data[-16:]
     ciphertext = data[12:-16]
 
     cipher = AES.new(KEY, AES.MODE_GCM, nonce=nonce)
     cipher.update(b"android")
-    decrypted = cipher.decrypt_and_verify(ciphertext, tag)
 
+    decrypted = cipher.decrypt_and_verify(ciphertext, tag)
     config = json.loads(decrypted.decode())
+
     singbox = json.loads(config.get("singbox_config", "{}"))
 
     links = []
@@ -65,6 +86,7 @@ def get_links():
         if isinstance(port, list):
             port = port[0]
 
+        # hysteria2
         if outbound.get("type") == "hysteria2":
             password = outbound.get("password", "")
             tls = outbound.get("tls", {})
@@ -73,6 +95,7 @@ def get_links():
 
             links.append(f"hysteria2://{password}@{ip}:{port}/?insecure={insecure}&sni={sni}#{tag}")
 
+        # vless
         elif outbound.get("type") == "vless":
             uuid_ = outbound.get("uuid", "")
             tls = outbound.get("tls", {})
@@ -98,12 +121,16 @@ def get_links():
                     f"&host={host}&path={path}&security=none&type=ws#{tag}"
                 )
 
+    print(f"✅ НАЙДЕНО: {len(links)} конфигов")
     return links
 
+
 # =========================
-# GIST ОБНОВЛЕНИЕ
+# ОБНОВЛЕНИЕ GIST
 # =========================
 def update_gist(content):
+    print("📤 ОБНОВЛЕНИЕ GIST...")
+
     url = f"https://api.github.com/gists/{GIST_ID}"
 
     headers = {
@@ -119,33 +146,30 @@ def update_gist(content):
         }
     }
 
-    r = requests.patch(url, headers=headers, json=data)
+    r = requests.patch(url, headers=headers, json=data, timeout=10)
+
+    print("STATUS:", r.status_code)
+    print("RESPONSE:", r.text[:200])
 
     return r.status_code == 200
 
+
 # =========================
-# MAIN LOOP
+# MAIN
 # =========================
-while True:
-    try:
-        print("\n=== ОБНОВЛЕНИЕ ===")
+if not GITHUB_TOKEN:
+    print("❌ НЕТ GITHUB_TOKEN")
+    exit(1)
 
-        links = get_links()
+links = get_links()
 
-        if not links:
-            print("❌ Нет конфигов")
-        else:
-            sub = base64.b64encode("\n".join(links).encode()).decode()
+if not links:
+    print("❌ Нет конфигов")
+    exit(1)
 
-            if update_gist(sub):
-                print("✅ Gist обновлён")
-                print(f"📊 Конфигов: {len(links)}")
-                print(f"🔗 https://gist.githubusercontent.com/miro-tech/{GIST_ID}/raw/{GIST_FILENAME}")
-            else:
-                print("❌ Ошибка загрузки в Gist")
+sub = base64.b64encode("\n".join(links).encode()).decode()
 
-    except Exception as e:
-        print("⚠️ Ошибка:", e)
-
-    print(f"⏳ Ждём {INTERVAL//60} минут...\n")
-    time.sleep(INTERVAL)
+if update_gist(sub):
+    print("✅ GIST УСПЕШНО ОБНОВЛЁН")
+else:
+    print("❌ Ошибка загрузки в Gist")
