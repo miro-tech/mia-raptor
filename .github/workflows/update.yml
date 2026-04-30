@@ -1,0 +1,27 @@
+name: VPN Updater
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"   # каждый 12 часов
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Клонируем репозиторий
+        uses: actions/checkout@v4
+
+      - name: Устанавливаем Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Устанавливаем зависимости
+        run: pip install requests pycryptodome
+
+      - name: Запуск скрипта
+        run: python script.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
