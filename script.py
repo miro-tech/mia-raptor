@@ -1,5 +1,6 @@
 import requests, uuid, base64, json, time
 from Crypto.Cipher import AES
+import os
 
 # =========================
 # НАСТРОЙКИ
@@ -10,7 +11,6 @@ KEY = bytes.fromhex("fd9840a6e1f3c2a1ca6e55112679232add28c725dcfae34972db0c6a0e1
 INTERVAL = 43200  # каждые 12 часов
 
 GIST_ID = "b4674e2547e2720e4c7d27fdeebc0591"
-import os
 GITHUB_TOKEN = os.getenv("MIRO_TOKEN")
 GIST_FILENAME = "tumanchik"
 
