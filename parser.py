@@ -7,50 +7,91 @@ from datetime import datetime
 # Отключаем предупреждения об SSL
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# --- НАСТРОЙКИ ---
 GIST_ID = "b4674e2547e2720e4c7d27fdeebc0591"
 GIST_FILENAME = "gistfile1.txt"
-TARGET_URL = "https://miacloud99.com"
 
-def fetch_and_update():
+# Источники и их настройки
+SOURCES = [
+    {"url": "https://cloudjete.com", "prefix": "Veenox_"},
+    {"url": "https://miacloud99.com", "prefix": "Mia_"}
+]
+
+def log_msg(msg):
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
+
+def process_links(raw_text, prefix):
+    # 1. Ищем все vless ссылки
+    found = re.findall(r'vless://[^\s"\\]+', raw_text)
+    processed = []
+
+    for link in found:
+        # 2. Меняем в UUID строку "6e9" на "9e6"
+        # Это затронет UUID, если он есть в ссылке
+        new_link = link.replace("6e9", "9e6")
+
+        # 3. Добавляем префикс к названию (тегу после #)
+        if "#" in new_link:
+            base_url, tag = new_link.split("#", 1)
+            new_link = f"{base_url}#{prefix}{tag}"
+        else:
+            # Если тега нет, просто добавляем его в конец
+            new_link = f"{new_link}#{prefix}config"
+            
+        processed.append(new_link)
+    
+    return processed
+
+def main():
     token = os.getenv("GIST_TOKEN")
     if not token:
-        print("❌ Ошибка: GIST_TOKEN не найден")
+        log_msg("❌ Ошибка: GIST_TOKEN не найден")
         return
 
     headers = {
         "User-Agent": "okhttp/4.9.0",
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "Connection": "Keep-Alive"
     }
     
-    print(f"🚀 Запрос к {TARGET_URL}...")
-    try:
-        # Прямой запрос к сайту без регистрации
-        response = requests.get(TARGET_URL, headers=headers, timeout=30, verify=False)
-        # Если сайт вернул данные, ищем vless ссылки
-        links = re.findall(r'vless://[^\s"\\]+', response.text)
-        links = list(dict.fromkeys(links)) # Удаляем дубли
-        
-        if not links:
-            print("❌ Ссылок vless не найдено")
-            return
+    all_final_links = []
 
-        print(f"✅ Найдено ссылок: {len(links)}")
-        
-        # Отправка в Gist
-        gist_url = f"https://api.github.com/gists/{GIST_ID}"
+    for source in SOURCES:
+        try:
+            log_msg(f"🚀 Запрос к {source['url']}...")
+            response = requests.get(source['url'], headers=headers, timeout=30, verify=False)
+            response.raise_for_status()
+            
+            links = process_links(response.text, source['prefix'])
+            log_msg(f"✅ Получено из {source['url']}: {len(links)} ссылок")
+            all_final_links.extend(links)
+            
+        except Exception as e:
+            log_msg(f"⚠️ Ошибка при обработке {source['url']}: {e}")
+
+    if not all_final_links:
+        log_msg("❌ Ссылок не найдено ни в одном источнике")
+        return
+
+    # Удаляем дубликаты
+    all_final_links = list(dict.fromkeys(all_final_links))
+
+    # Обновление Gist
+    log_msg(f"📤 Отправка {len(all_final_links)} ссылок в Gist...")
+    gist_url = f"https://api.github.com/gists/{GIST_ID}"
+    try:
         res = requests.patch(
             gist_url,
-            headers={"Authorization": f"token {token}"},
-            json={"files": {GIST_FILENAME: {"content": "\n".join(links)}}}
+            headers={"Authorization": f"token {token}", "Content-Type": "application/json"},
+            json={"files": {GIST_FILENAME: {"content": "\n".join(all_final_links)}}}
         )
         
         if res.status_code == 200:
-            print("🎉 Gist успешно обновлен!")
+            log_msg("🎉 Gist успешно обновлен!")
         else:
-            print(f"❌ Ошибка Gist API: {res.status_code}")
-
+            log_msg(f"❌ Ошибка Gist API: {res.status_code} - {res.text}")
     except Exception as e:
-        print(f"💥 Критическая ошибка: {e}")
+        log_msg(f"❌ Ошибка GitHub: {e}")
 
 if __name__ == "__main__":
-    fetch_and_update()
+    main()
