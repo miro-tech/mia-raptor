@@ -1,27 +1,26 @@
-name: VPN Updater
+name: Vless Auto Update
 
 on:
   schedule:
-    - cron: "0 */12 * * *"   # каждый 12 часов
-  workflow_dispatch:
+    - cron: '0 */6 * * *' # Запуск каждые 6 часов
+  workflow_dispatch:      # Позволяет запустить вручную кнопкой
 
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Клонируем репозиторий
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Устанавливаем Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.9'
 
-      - name: Устанавливаем зависимости
-        run: pip install requests pycryptodome
+      - name: Install dependencies
+        run: pip install requests
 
-      - name: Запуск скрипта
-        run: python script.py
+      - name: Run script
         env:
-          GITHUB_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }} # Вот здесь секрет передается в Python
+        run: python parser.py
