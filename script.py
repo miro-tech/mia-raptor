@@ -1,39 +1,77 @@
 import os
-import json
-import base64
+import re
 import requests
-import uuid
+import base64
 from datetime import datetime
-from Crypto.Cipher import AES
 
 # --- НАСТРОЙКИ ---
 GIST_ID = "b4674e2547e2720e4c7d27fdeebc0591"
 GIST_FILENAME = "gistfile1.txt"
-API_BASE = "https://api.xbs54as9c6.ru"
-USER_AGENT = "v1.7.7 Android/34 Samsung Galaxy S24"
-API_AES_KEY = "fd9840a6e1f3c2a1ca6e55112679232add28c725dcfae34972db0c6a0e13cfaf"
-
-SERVER_IPS = {
-    'yy.xbs54as9c6.ru': {'selective': '158.160.5.176', 'fulltunnel': '46.243.211.17'},
-    'tn.xbs54as9c6.ru': {'selective': '217.149.25.86', 'fulltunnel': '72.56.38.52'},
-    'tg.xbs54as9c6.ru': {'selective': '141.105.66.189', 'fulltunnel': '91.218.245.82'}
-}
+TARGET_URL = "https://miacloud99.com"
 
 def log_msg(msg):
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
-def decrypt_config(data_b64):
-    encrypted = base64.b64decode(data_b64)
-    nonce = encrypted[:12]
-    ciphertext_with_tag = encrypted[12:]
-    tag = ciphertext_with_tag[-16:]
-    ciphertext = ciphertext_with_tag[:-16]
+def fetch_and_update():
+    token = os.getenv("GIST_TOKEN")
+    if not token:
+        log_msg("Ошибка: GIST_TOKEN не найден")
+        return
+
+    # 1. Выполняем запрос (аналог вашего curl)
+    headers = {
+        "User-Agent": "okhttp/4.9.0",
+        "Accept": "application/json",
+        "Connection": "Keep-Alive"
+    }
     
-    key = bytes.fromhex(API_AES_KEY)
-    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
     try:
-        decrypted = cipher.decrypt_and_verify(ciphertext, tag)
-        return json.loads(decrypted)
+        log_msg(f"Запрос к {TARGET_URL}...")
+        response = requests.get(TARGET_URL, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.text
+    except Exception as e:
+        log_msg(f"Ошибка запроса: {e}")
+        return
+
+    # 2. Ищем vless ссылки (ваш регулярный запуск)
+    links = re.findall(r'vless://[^\s"\\]+', data)
+    
+    # Очистка от дубликатов с сохранением порядка
+    links = list(dict.fromkeys(links))
+    
+    if not links:
+        log_msg("Ссылки vless не найдены в ответе")
+        return
+
+    log_msg(f"Найдено ссылок: {len(links)}")
+
+    # 3. Формируем контент (чистые ссылки через перенос строки)
+    # Если нужен Base64 (как в подписках), расскомментируйте нижнюю строку:
+    # final_content = base64.b64encode("\n".join(links).encode()).decode()
+    final_content = "\n".join(links)
+
+    # 4. Обновляем Gist через GitHub API
+    gist_url = f"https://api.github.com/gists/{GIST_ID}"
+    gist_headers = {
+        "Authorization": f"token {token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "files": {
+            GIST_FILENAME: {"content": final_content}
+        }
+    }
+
+    res = requests.patch(gist_url, json=payload, headers=gist_headers)
+    
+    if res.status_code == 200:
+        log_msg("Gist успешно обновлен!")
+    else:
+        log_msg(f"Ошибка GitHub API: {res.status_code} - {res.text}")
+
+if __name__ == "__main__":
+    fetch_and_update()
     except Exception as e:
         log_msg(f"Ошибка дешифровки: {e}")
         return None
