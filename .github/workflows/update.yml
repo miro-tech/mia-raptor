@@ -2,7 +2,7 @@ name: Vless Auto Update
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Запуск каждые 6 часов
+    - cron: '*/30 * * * *' # Запуск каждые 30 минут
   workflow_dispatch:      # Позволяет запустить вручную кнопкой
 
 jobs:
