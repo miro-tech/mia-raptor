@@ -13,7 +13,7 @@ GIST_FILENAME = "gistfile1.txt"
 
 # Источники и их настройки
 SOURCES = [
-    {"url": "https://cloudjete.com", "prefix": "Veenox_"},
+    {"url": "https://raptorcloudb.com", "prefix": "Raptor_"},
     {"url": "https://miacloud99.com", "prefix": "Mia_"}
 ]
 
