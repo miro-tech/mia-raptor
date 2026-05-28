@@ -14,7 +14,9 @@ GIST_FILENAME = "gistfile1.txt"
 # Источники и их настройки
 SOURCES = [
     {"url": "https://raptorcloudb.com", "prefix": "Raptor_"},
-    {"url": "https://miacloud99.com", "prefix": "Mia_"}
+    {"url": "https://miacloud99.com", "prefix": "Mia_"},
+    {"url": "https://nexaclouda.com", "prefix": "Nexa_"},
+    {"url": "https://cloudjete.com", "prefix": "Veenox_"}
 ]
 
 def log_msg(msg):
