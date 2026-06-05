@@ -29,15 +29,24 @@ def process_links(raw_text, prefix):
 
     for link in found:
         # 2. Меняем в UUID строку "6e9" на "9e6"
-        # Это затронет UUID, если он есть в ссылке
         new_link = link.replace("6e9", "9e6")
 
-        # 3. Добавляем префикс к названию (тегу после #)
+        # 3. Удаляем alpn=...
+        # Регулярка ищет alpn=, берет все символы до следующего & или конца строки
+        new_link = re.sub(r'[?&]alpn=[^&]+', '', new_link)
+        
+        # Исправляем возможный двойной разделитель ?& или && после удаления
+        new_link = new_link.replace('?&', '?')
+        # Если alpn был первым параметром, после удаления может остаться ? в конце или &&
+        new_link = new_link.replace('&&', '&')
+        if new_link.endswith('?'):
+            new_link = new_link[:-1]
+
+        # 4. Добавляем префикс к названию (тегу после #)
         if "#" in new_link:
             base_url, tag = new_link.split("#", 1)
             new_link = f"{base_url}#{prefix}{tag}"
         else:
-            # Если тега нет, просто добавляем его в конец
             new_link = f"{new_link}#{prefix}config"
             
         processed.append(new_link)
