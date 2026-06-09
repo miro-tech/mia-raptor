@@ -86,6 +86,11 @@ def main():
 
     # Удаляем дубликаты
     all_final_links = list(dict.fromkeys(all_final_links))
+    # --- ДОБАВЛЕНИЕ ВРЕМЕНИ ОБНОВЛЕНИЯ ---
+    update_time = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+    # Добавляем как комментарий или специальную строку в начало
+    header_line = f"vless://00000000-0000-0000-0000-000000000000@127.0.0.1:0?type=none#🕒_Last_Update:_{update_time}"
+    all_final_links.insert(0, header_line)
 
     # Обновление Gist
     log_msg(f"📤 Отправка {len(all_final_links)} ссылок в Gist...")
@@ -106,3 +111,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
