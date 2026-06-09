@@ -29,19 +29,20 @@ def main():
         log_msg("❌ Ссылок не найдено ни в одном источнике")
         return
 
-    # Удаляем дубликаты
+        # Удаляем дубликаты
     all_final_links = list(dict.fromkeys(all_final_links))
 
-        # --- ОБНОВЛЕНИЕ ВРЕМЕНИ (УРАЛ UTC+5) ---
+    # --- ПРИНУДИТЕЛЬНОЕ ВРЕМЯ УРАЛ (UTC+5) ---
+    # Получаем время UTC, добавляем 5 часов
     from datetime import timedelta, timezone
     
-    # Создаем зону UTC+5
-    ural_tz = timezone(timedelta(hours=5))
-    ural_time = datetime.now(ural_tz).strftime('%d.%m.%Y %H:%M:%S')
+    ural_offset = timezone(timedelta(hours=5))
+    # Используем utcnow с явным указанием зоны
+    ural_time = datetime.now(ural_offset).strftime('%d.%m.%Y %H:%M:%S')
     
     header_line = f"vless://00000000-0000-0000-0000-000000000000@127.0.0.1:0?type=none#🕒_Update_Ural:_{ural_time}"
     all_final_links.insert(0, header_line)
-
+    # ----------------------------------------
 
     # Обновление Gist
     log_msg(f"📤 Отправка {len(all_final_links)} ссылок в Gist...")
