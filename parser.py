@@ -1,60 +1,3 @@
-import os
-import re
-import requests
-import urllib3
-from datetime import datetime
-from zoneinfo import ZoneInfo # Добавьте эту строку
-
-
-# Отключаем предупреждения об SSL
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# --- НАСТРОЙКИ ---
-GIST_ID = "b4674e2547e2720e4c7d27fdeebc0591"
-GIST_FILENAME = "gistfile1.txt"
-
-# Источники и их настройки
-SOURCES = [
-    {"url": "https://raptorcloudb.com", "prefix": "Raptor_"},
-    {"url": "https://miacloud99.com", "prefix": "Mia_"},
-    {"url": "https://nexacloudb.com", "prefix": "Nexa_"},
-    {"url": "https://cloudjeto.com", "prefix": "Veenox_"}
-]
-
-def log_msg(msg):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
-
-def process_links(raw_text, prefix):
-    # 1. Ищем все vless ссылки
-    found = re.findall(r'vless://[^\s"\\]+', raw_text)
-    processed = []
-
-    for link in found:
-        # 2. Меняем в UUID строку "6e9" на "9e6"
-        new_link = link.replace("6e9", "9e6")
-
-        # 3. Удаляем alpn=...
-        # Регулярка ищет alpn=, берет все символы до следующего & или конца строки
-        new_link = re.sub(r'[?&]alpn=[^&]+', '', new_link)
-        
-        # Исправляем возможный двойной разделитель ?& или && после удаления
-        new_link = new_link.replace('?&', '?')
-        # Если alpn был первым параметром, после удаления может остаться ? в конце или &&
-        new_link = new_link.replace('&&', '&')
-        if new_link.endswith('?'):
-            new_link = new_link[:-1]
-
-        # 4. Добавляем префикс к названию (тегу после #)
-        if "#" in new_link:
-            base_url, tag = new_link.split("#", 1)
-            new_link = f"{base_url}#{prefix}{tag}"
-        else:
-            new_link = f"{new_link}#{prefix}config"
-            
-        processed.append(new_link)
-    
-    return processed
-
 def main():
     token = os.getenv("GIST_TOKEN")
     if not token:
@@ -88,12 +31,12 @@ def main():
 
     # Удаляем дубликаты
     all_final_links = list(dict.fromkeys(all_final_links))
-    # --- ОБНОВЛЕНИЕ ВРЕМЕНИ (УРАЛ) ---
-# Указываем часовой пояс Екатеринбурга
-ural_time = datetime.now(ZoneInfo("Asia/Yekaterinburg")).strftime('%d.%m.%Y %H:%M:%S')
-header_line = f"vless://00000000-0000-0000-0000-000000000000@127.0.0.1:0?type=none#🕒_Update_Ural:_{ural_time}"
-all_final_links.insert(0, header_line)
 
+    # --- ОБНОВЛЕНИЕ ВРЕМЕНИ (УРАЛ) ---
+    # Исправлены отступы: теперь эти строки находятся внутри функции main
+    ural_time = datetime.now(ZoneInfo("Asia/Yekaterinburg")).strftime('%d.%m.%Y %H:%M:%S')
+    header_line = f"vless://00000000-0000-0000-0000-000000000000@127.0.0.1:0?type=none#🕒_Update_Ural:_{ural_time}"
+    all_final_links.insert(0, header_line)
 
     # Обновление Gist
     log_msg(f"📤 Отправка {len(all_final_links)} ссылок в Gist...")
@@ -111,7 +54,3 @@ all_final_links.insert(0, header_line)
             log_msg(f"❌ Ошибка Gist API: {res.status_code} - {res.text}")
     except Exception as e:
         log_msg(f"❌ Ошибка GitHub: {e}")
-
-if __name__ == "__main__":
-    main()
-    
