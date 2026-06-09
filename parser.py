@@ -3,6 +3,8 @@ import re
 import requests
 import urllib3
 from datetime import datetime
+from zoneinfo import ZoneInfo # Добавьте эту строку
+
 
 # Отключаем предупреждения об SSL
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -86,11 +88,12 @@ def main():
 
     # Удаляем дубликаты
     all_final_links = list(dict.fromkeys(all_final_links))
-    # --- ДОБАВЛЕНИЕ ВРЕМЕНИ ОБНОВЛЕНИЯ ---
-    update_time = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
-    # Добавляем как комментарий или специальную строку в начало
-    header_line = f"vless://00000000-0000-0000-0000-000000000000@127.0.0.1:0?type=none#🕒_Last_Update:_{update_time}"
-    all_final_links.insert(0, header_line)
+    # --- ОБНОВЛЕНИЕ ВРЕМЕНИ (УРАЛ) ---
+# Указываем часовой пояс Екатеринбурга
+ural_time = datetime.now(ZoneInfo("Asia/Yekaterinburg")).strftime('%d.%m.%Y %H:%M:%S')
+header_line = f"vless://00000000-0000-0000-0000-000000000000@127.0.0.1:0?type=none#🕒_Update_Ural:_{ural_time}"
+all_final_links.insert(0, header_line)
+
 
     # Обновление Gist
     log_msg(f"📤 Отправка {len(all_final_links)} ссылок в Gist...")
