@@ -11,7 +11,7 @@ GIST_FILENAME = "gistfile1.txt"
 
 SOURCES = [
     {"url": "https://raptorcloudb.com", "prefix": "Raptor_"},
-    {"url": "https://miacloud99.com", "prefix": "Mia_"},
+    {"url": "https://airhost1.com", "prefix": "Mia_"},
     {"url": "https://nexacloudb.com", "prefix": "Nexa_"},
     {"url": "https://cloudjeto.com", "prefix": "Veenox_"}
 ]
