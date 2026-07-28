@@ -6,8 +6,10 @@ from datetime import datetime, timedelta, timezone
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 GIST_ID = "b4674e2547e2720e4c7d27fdeebc0591"
 GIST_FILENAME = "gistfile1.txt"
+
 
 SOURCES = [
     {"url": "https://raptorcloudb.com", "prefix": "Raptor_"},
@@ -15,6 +17,7 @@ SOURCES = [
     {"url": "https://fredcctt.com", "prefix": "Raptor_"},
     {"url": "https://zerobase1.com", "prefix": "Raptor_"},
     {"url": "https://zerobase2.com", "prefix": "Raptor_"},
+
     {"url": "https://airhost1.com", "prefix": "Mia_"},
     {"url": "https://miacloud1.com", "prefix": "Mia_"},
     {"url": "https://mibcloudb.com", "prefix": "Mia_"},
@@ -22,72 +25,209 @@ SOURCES = [
     {"url": "https://airdriveg.com", "prefix": "Mia_"},
     {"url": "https://airdriveg1.com", "prefix": "Mia_"},
     {"url": "https://miacloud99.com", "prefix": "Mia_"},
+
     {"url": "https://nexacloudb.com", "prefix": "Nexa_"},
     {"url": "https://nexaclouda.com", "prefix": "Nexa_"},
     {"url": "https://nexacloud3.com", "prefix": "Nexa_"},
+
     {"url": "https://cloudjeto.com", "prefix": "Veenox_"},
     {"url": "https://cloudjete.com", "prefix": "Veenox_"},
     {"url": "https://veenoxcloud3.com", "prefix": "Veenox_"}
 ]
 
-def log_msg(msg):
+
+def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
-def process_links(raw_text, prefix):
-    found = re.findall(r'vless://[^\s"\\]+', raw_text)
-    processed = []
-    for link in found:
-        new_link = link.replace("6e9", "9e6")
-        new_link = re.sub(r'[?&]alpn=[^&]+', '', new_link)
-        new_link = new_link.replace('?&', '?').replace('&&', '&')
-        if new_link.endswith('?'): new_link = new_link[:-1]
-        
-        if "#" in new_link:
-            base_url, tag = new_link.split("#", 1)
-            new_link = f"{base_url}#{prefix}{tag}"
+
+def process_links(text, prefix):
+
+    links = re.findall(
+        r'vless://[^\s"\\]+',
+        text
+    )
+
+    result = []
+
+    for link in links:
+
+        link = link.replace("6e9", "9e6")
+
+        link = re.sub(
+            r'[?&]alpn=[^&]+',
+            '',
+            link
+        )
+
+        link = (
+            link
+            .replace("?&", "?")
+            .replace("&&", "&")
+        )
+
+        if link.endswith("?"):
+            link = link[:-1]
+
+
+        if "#" in link:
+            base, name = link.split("#", 1)
+            link = f"{base}#{prefix}{name}"
         else:
-            new_link = f"{new_link}#{prefix}config"
-        processed.append(new_link)
-    return processed
+            link = f"{link}#{prefix}config"
+
+
+        result.append(link)
+
+
+    return result
+
+
 
 def main():
+
     token = os.getenv("GIST_TOKEN")
+
     if not token:
-        log_msg("❌ Ошибка: GIST_TOKEN не найден")
+        log("❌ GIST_TOKEN отсутствует")
         return
 
-    all_final_links = []
-    headers = {"User-Agent": "okhttp/4.9.0"}
-    
+
+    all_links = []
+
+    headers = {
+        "User-Agent": "okhttp/4.9.0"
+    }
+
+
     for source in SOURCES:
+
         try:
-            response = requests.get(source['url'], headers=headers, timeout=30, verify=False)
-            response.raise_for_status()
-            all_final_links.extend(process_links(response.text, source['prefix']))
+
+            log(f"Получаю {source['url']}")
+
+            r = requests.get(
+                source["url"],
+                headers=headers,
+                timeout=30,
+                verify=False
+            )
+
+            r.raise_for_status()
+
+
+            links = process_links(
+                r.text,
+                source["prefix"]
+            )
+
+
+            log(
+                f"{source['url']} -> {len(links)} конфигов"
+            )
+
+
+            all_links.extend(links)
+
+
         except Exception as e:
-            log_msg(f"⚠️ Ошибка {source['url']}: {e}")
 
-    # Удаляем дубли и добавляем время
-    all_final_links = list(dict.fromkeys(all_final_links))
-    
-    # ПРИНУДИТЕЛЬНОЕ ВРЕМЯ (УРАЛ UTC+5)
-    ural_time = datetime.now(timezone(timedelta(hours=5))).strftime('%d.%m.%Y %H:%M:%S')
-    header_line = f"vless://00000000-0000-0000-0000-000000000000@127.0.0.1:0?type=none#🕒_Ural_Time:_{ural_time}"
-    all_final_links.insert(0, header_line)
-    
-    log_msg(f"DEBUG: Время в Gist будет: {ural_time}")
+            log(
+                f"⚠ Ошибка {source['url']}: {e}"
+            )
 
-    # Отправка
-    res = requests.patch(
-        f"https://api.github.com/gists/{GIST_ID}",
-        headers={"Authorization": f"token {token}"},
-        json={"files": {GIST_FILENAME: {"content": "\n".join(all_final_links)}}}
+
+
+    # удаление дублей
+    all_links = list(dict.fromkeys(all_links))
+
+
+    # время UTC+5
+    ural_time = datetime.now(
+        timezone(timedelta(hours=5))
+    ).strftime(
+        "%d.%m.%Y %H:%M:%S"
     )
-    
-    if res.status_code == 200:
-        log_msg("🎉 Успех!")
-    else:
-        log_msg(f"❌ Ошибка API: {res.status_code}")
+
+
+    header = (
+        "vless://00000000-0000-0000-0000-000000000000"
+        "@127.0.0.1:0?type=none"
+        f"#🕒_Ural_Time:_{ural_time}"
+    )
+
+
+    all_links.insert(
+        0,
+        header
+    )
+
+
+    content = "\n".join(all_links)
+
+
+
+    # ==========================
+    # Сохраняем для GitVerse
+    # ==========================
+
+    with open(
+        "configs.txt",
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        f.write(content)
+
+
+    log(
+        f"configs.txt создан: {len(all_links)} строк"
+    )
+
+
+
+    # ==========================
+    # Обновление Gist
+    # ==========================
+
+
+    try:
+
+        response = requests.patch(
+            f"https://api.github.com/gists/{GIST_ID}",
+            headers={
+                "Authorization": f"token {token}"
+            },
+            json={
+                "files": {
+                    GIST_FILENAME: {
+                        "content": content
+                    }
+                }
+            }
+        )
+
+
+        if response.status_code == 200:
+
+            log("✅ Gist обновлён")
+
+        else:
+
+            log(
+                f"❌ Gist ошибка {response.status_code}: {response.text}"
+            )
+
+
+    except Exception as e:
+
+        log(
+            f"❌ Ошибка Gist: {e}"
+        )
+
+
+
+    log("🎉 Готово")
+
 
 if __name__ == "__main__":
     main()
