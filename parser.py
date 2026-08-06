@@ -12,21 +12,21 @@ GIST_FILENAME = "gistfile1.txt"
 
 
 SOURCES = [
-    {"url": "https://raptorcloudb.com", "prefix": "Raptor_"},
-    {"url": "https://raptorcloud3.com", "prefix": "Raptor_"},
-    {"url": "https://fredcctt.com", "prefix": "Raptor_"},
-    {"url": "https://zerobase1.com", "prefix": "Raptor_"},
-    {"url": "https://zerobase2.com", "prefix": "Raptor_"},
+    {"url": "https://drive.google.com/uc?export=download&id=1sAzCBwrh_3tz-7c5qu-ih6ULoJiJINWo", "prefix": "Zero_"},
+    {"url": "https://raptorcloud3.com", "prefix": "Zero_"},
+    {"url": "https://fredcctt.com", "prefix": "Zero_"},
+    {"url": "https://zerobase1.com", "prefix": "Zero_"},
+    {"url": "https://zerobase2.com", "prefix": "Zero_"},
 
     {"url": "https://airhost1.com", "prefix": "Mia_"},
     {"url": "https://miacloud1.com", "prefix": "Mia_"},
-    {"url": "https://mibcloudb.com", "prefix": "Mia_"},
+    {"url": "https://miagit1.com", "prefix": "Mia_"},
     {"url": "https://miacloud3.com", "prefix": "Mia_"},
     {"url": "https://airdriveg.com", "prefix": "Mia_"},
     {"url": "https://airdriveg1.com", "prefix": "Mia_"},
-    {"url": "https://miacloud99.com", "prefix": "Mia_"},
+    {"url": "miamain1.com", "prefix": "Mia_"},
 
-    {"url": "https://nexacloudb.com", "prefix": "Nexa_"},
+    {"url": "https://drive.google.com/uc?export=download&id=1_kkDxYC1q1iybT-EttXL3Zp_9tHKLumR", "prefix": "Nexa_"},
     {"url": "https://nexaclouda.com", "prefix": "Nexa_"},
     {"url": "https://nexacloud3.com", "prefix": "Nexa_"},
 
@@ -110,6 +110,7 @@ def main():
                 headers=headers,
                 timeout=30,
                 verify=False
+                allow_redirects=True
             )
 
             r.raise_for_status()
