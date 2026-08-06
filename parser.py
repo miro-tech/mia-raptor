@@ -18,7 +18,7 @@ SOURCES = [
         "url": "https://drive.google.com/uc?export=download&id=1_kkDxYC1q1iybT-EttXL3Zp_9tHKLumR",
         "prefix": "Nexa_"
     },
-    {"url": "https://airhost1.com": "prefix": "Mia_"},
+    {"url": "https://airhost1.com", "prefix": "Mia_"},
     {"url": "https://miamain1.com", "prefix": "Mia_"},
     {"url": "https://miagit1.com", "prefix": "Mia_"}
 ]
