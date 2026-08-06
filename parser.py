@@ -79,7 +79,7 @@ def main():
             r = requests.get(
                 source["url"],
                 headers=headers,
-                timeout=30,
+                timeout= (2,5),
                 verify=False,
                 allow_redirects=True
             )
