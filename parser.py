@@ -12,7 +12,7 @@ GIST_FILENAME = "gistfile1.txt"
 SOURCES = [
     {
         "url": "https://drive.google.com/uc?export=download&id=1sAzCBwrh_3tz-7c5qu-ih6ULoJiJINWo",
-        "prefix": "Zero_"
+        "prefix": "Veenox_"
     },
     {
         "url": "https://drive.google.com/uc?export=download&id=1_kkDxYC1q1iybT-EttXL3Zp_9tHKLumR",
@@ -20,7 +20,8 @@ SOURCES = [
     },
     {"url": "https://airhost1.com", "prefix": "Mia_"},
     {"url": "https://miamain1.com", "prefix": "Mia_"},
-    {"url": "https://miagit1.com", "prefix": "Mia_"}
+    {"url": "https://miagit1.com", "prefix": "Mia_"},
+    {"url": "https://fredcctt.com", "prefix": "Raptor_"}
 ]
 
 
