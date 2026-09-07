@@ -34,7 +34,7 @@ jobs:
 
           git clone https://${GV_TOKEN}@gitverse.ru/mirgittech/miamy.git gitverse
 
-          cp conf.txt gitverse/configs.txt
+          cp configs.txt gitverse/configs.txt
 
           cd gitverse
 
