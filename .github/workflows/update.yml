@@ -5,77 +5,42 @@ on:
     - cron: '*/15 * * * *'
   workflow_dispatch:
 
-# Не позволяем двум запускам одновременно обновлять GitVerse
-concurrency:
-  group: vless-auto-update
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
+        run: pip install requests
 
       - name: Run script
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
-        run: |
-          python parser.py
+        run: python parser.py
+
 
       - name: Push configs to GitVerse
         env:
           GV_USER: ${{ secrets.GV_USER }}
           GV_TOKEN: ${{ secrets.GV_TOKEN }}
         run: |
-          set -e
+          git clone https://${GV_USER}:${GV_TOKEN}@gitverse.ru/mirgittech/miamy.git gitverse
 
-          echo "=== Clone GitVerse ==="
-
-          rm -rf gitverse
-
-          git clone \
-            https://${GV_USER}:${GV_TOKEN}@gitverse.ru/mirgittech/mia.git \
-            gitverse
+          cp conf.txt gitverse/conf.txt
 
           cd gitverse
 
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          echo "=== Update configs.txt ==="
-
-          cp ../configs.txt ./configs.txt
-
-          echo "=== Git status ==="
-
-          git status
-
           git add configs.txt
-
-          # Если файл не изменился — ничего не делаем
-          if git diff --cached --quiet; then
-            echo "No changes in configs.txt"
-            exit 0
-          fi
-
-          echo "=== Commit ==="
-
-          git commit -m "Auto update configs $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-
-          echo "=== Push ==="
-
-          git push origin HEAD:master
-
-          echo "=== GitVerse updated successfully ==="
+          git commit -m "Auto update configs $(date)" || exit 0
+          git push origin master
