@@ -26,13 +26,13 @@ jobs:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: python parser.py
 
-
       - name: Push configs to GitVerse
         env:
-          GV_USER: ${{ secrets.GV_USER }}
           GV_TOKEN: ${{ secrets.GV_TOKEN }}
         run: |
-          git clone https://${GV_USER}:${GV_TOKEN}@gitverse.ru/mirgittech/miamy.git gitverse
+          set -e
+
+          git clone https://${GV_TOKEN}@gitverse.ru/mirgittech/miamy.git gitverse
 
           cp conf.txt gitverse/conf.txt
 
@@ -42,5 +42,11 @@ jobs:
           git config user.email "actions@github.com"
 
           git add conf.txt
-          git commit -m "Auto update configs $(date)" || exit 0
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Auto update configs $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin master
