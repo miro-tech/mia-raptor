@@ -32,7 +32,7 @@ jobs:
         run: |
           set -e
 
-          git clone https://${GV_TOKEN}@gitverse.ru/mirgittech/miamy.git gitverse
+          git clone https://${GV_TOKEN}@gitverse.ru/mirgittech/mia.git gitverse
 
           cp configs.txt gitverse/configs.txt
 
