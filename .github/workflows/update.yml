@@ -34,14 +34,14 @@ jobs:
 
           git clone https://${GV_TOKEN}@gitverse.ru/mirgittech/miamy.git gitverse
 
-          cp conf.txt gitverse/conf.txt
+          cp conf.txt gitverse/configs.txt
 
           cd gitverse
 
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          git add conf.txt
+          git add configs.txt
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
