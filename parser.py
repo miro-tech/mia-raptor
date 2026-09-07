@@ -15,7 +15,11 @@ SOURCES = [
         "prefix": "Veenox_"
     },
     {
-        "url": "https://drive.google.com/uc?export=download&id=1_kkDxYC1q1iybT-EttXL3Zp_9tHKLumR",
+        "url": "https://drive.google.com/uc?export=download&id=1mXjl-bANDmqJIILWt9qWeG4Pfm6qzxlg",
+        "prefix": "Nexa_"
+    },
+    {
+        "url": "https://drive.google.com/uc?export=download&id=1gH3GmnkRREJiGkPLTHbUlMTuJ9uF51V1",
         "prefix": "Nexa_"
     },
     {"url": "https://airhost1.com", "prefix": "Mia_"},
