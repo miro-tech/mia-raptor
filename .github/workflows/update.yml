@@ -25,28 +25,3 @@ jobs:
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: python parser.py
-
-      - name: Push configs to GitVerse
-        env:
-          GV_TOKEN: ${{ secrets.GV_TOKEN }}
-        run: |
-          set -e
-
-          git clone https://${GV_TOKEN}@gitverse.ru/mirgittech/mia.git gitverse
-
-          cp configs.txt gitverse/configs.txt
-
-          cd gitverse
-
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-
-          git add configs.txt
-
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "Auto update configs $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push origin master
